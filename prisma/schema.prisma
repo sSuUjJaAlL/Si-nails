@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum PaymentType {
+  CASH
+  ONLINE
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(USER)
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  appointments Appointment[]
+  entries      ServiceEntry[]
+
+  @@map("users")
+}
+
+model Client {
+  id           String        @id @default(cuid())
+  name         String
+  phone        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  appointments Appointment[]
+
+  @@map("clients")
+}
+
+model Service {
+  id           String        @id @default(cuid())
+  name         String        @unique
+  defaultPrice Decimal       @db.Decimal(12, 2)
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  appointments Appointment[]
+
+  @@map("services")
+}
+
+model Appointment {
+  id          String            @id @default(cuid())
+  date        DateTime          @db.Date
+  time        String
+  clientId    String
+  serviceId   String
+  amount      Decimal           @db.Decimal(12, 2)
+  paymentType PaymentType
+  status      AppointmentStatus @default(PENDING)
+  createdById String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  client    Client  @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  createdBy User    @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([date])
+  @@index([clientId])
+  @@index([serviceId])
+  @@index([paymentType])
+  @@index([status])
+  @@map("appointments")
+}
+
+/// Simple daily service/payment rows entered by USER accounts (spreadsheet-style).
+model ServiceEntry {
+  id          String      @id @default(cuid())
+  date        DateTime    @db.Date
+  time        String
+  clientName  String
+  serviceType String
+  amount      Decimal     @db.Decimal(12, 2)
+  paymentType PaymentType
+  employeeId  String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  employee User @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([date])
+  @@index([employeeId])
+  @@index([paymentType])
+  @@map("service_entries")
+}

@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    container_name: sinails-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sinails
+      POSTGRES_PASSWORD: sinails
+      POSTGRES_DB: sinails
+    ports:
+      - "5433:5432"
+    volumes:
+      - sinails_pg:/var/lib/postgresql/data
+
+volumes:
+  sinails_pg:
