@@ -3,19 +3,15 @@ services:
     name: sinails
     runtime: node
     plan: free
-    buildCommand: npm install && npx prisma generate && npm run build
+    # Include devDependencies so vite/typescript are available during build
+    buildCommand: npm install --include=dev && npx prisma generate && npm run build
     startCommand: npm run start:prod
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
+      # Paste your Neon (or other) Postgres URL in the Render dashboard
       - key: DATABASE_URL
-        fromDatabase:
-          name: sinails-db
-          property: connectionString
+        sync: false
       - key: JWT_SECRET
         generateValue: true
-
-databases:
-  - name: sinails-db
-    plan: free

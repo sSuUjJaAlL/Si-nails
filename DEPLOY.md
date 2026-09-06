@@ -1,4 +1,4 @@
-# Deploy SiNails Studio (Railway)
+# Deploy SiNails Studio
 
 This app is **one Node server**: Express API + built React UI + PostgreSQL.
 
@@ -6,88 +6,84 @@ Production never seeds demo users. After deploy, the first visit is **Create Adm
 
 ---
 
-## Prerequisites
+## Recommended: Render + Neon (free)
 
-1. [GitHub](https://github.com) account
-2. [Railway](https://railway.app) account
-3. This repo pushed to GitHub
+Railway free trial may be expired. Use this path instead.
 
----
+### 1. Free Postgres on Neon
 
-## 1. Push the code
+1. Open [https://console.neon.tech](https://console.neon.tech) and sign up (GitHub is fine)
+2. Create a project named `sinails`
+3. Copy the connection string (**DATABASE_URL**) — it should include `sslmode=require`
 
-```bash
-git init
-git add .
-git commit -m "Prepare SiNails for production deploy"
-git branch -M main
-git remote add origin https://github.com/YOUR_USER/sinails.git
-git push -u origin main
+### 2. Web service on Render
+
+1. Open [https://dashboard.render.com](https://dashboard.render.com) → sign in with GitHub
+2. **New** → **Web Service** → select repo **`Si-nails`**
+3. Configure:
+
+| Field | Value |
+|-------|--------|
+| Branch | `main` |
+| Runtime | Node |
+| Build command | `npm install --include=dev && npx prisma generate && npm run build` |
+| Start command | `npm run start:prod` |
+
+4. **Environment** variables:
+
+| Key | Value |
+|-----|--------|
+| `NODE_ENV` | `production` |
+| `DATABASE_URL` | paste Neon URL |
+| `JWT_SECRET` | long random string (32+ chars) |
+
+5. Click **Create Web Service** and wait for the deploy (first build can take a few minutes)
+6. Open your Render URL:
+
+```text
+https://YOUR-SERVICE.onrender.com/api/health
+→ {"status":"ok",...}
+
+https://YOUR-SERVICE.onrender.com/
+→ Create Admin Account
 ```
 
-Do **not** commit `.env` (it is gitignored).
+### If a previous Blueprint deploy failed
+
+1. Delete the failed **sinails** web service and **sinails-db** (if any) on Render
+2. Create a **Web Service** manually with Neon as above (do not rely on free Render Postgres)
+
+### Why the Blueprint failed
+
+- Render often installs **without** `devDependencies` when `NODE_ENV=production`, so `vite` / `typescript` were missing during build
+- Free Render Postgres plans are limited / often unavailable
+
+The repo is updated so builds include the tools they need, and DB is expected from Neon.
 
 ---
 
-## 2. Create the Railway project
+## Alternative: Railway (if you have a paid plan)
 
-1. Open [railway.app/new](https://railway.app/new)
-2. **Deploy from GitHub repo** → select `sinails`
-3. Add a database: **New** → **Database** → **PostgreSQL**
-4. Open the **web service** (Node app) → **Variables**
-5. Add:
+1. [railway.app/new](https://railway.app/new) → Deploy from GitHub → `Si-nails`
+2. Add **PostgreSQL**
+3. Set env vars on the web service:
 
 | Variable | Value |
 |----------|--------|
-| `DATABASE_URL` | Click **Add Reference** → Postgres → `DATABASE_URL` |
-| `JWT_SECRET` | Generate a long random string (32+ chars) |
+| `DATABASE_URL` | reference from Postgres |
+| `JWT_SECRET` | long random string |
 | `NODE_ENV` | `production` |
 
-Railway sets `PORT` automatically. Do not hardcode it.
+4. Generate a public domain → open `/api/health` then `/setup`
 
-6. This repo includes [`Dockerfile`](Dockerfile) + [`railway.toml`](railway.toml). Railway should build with Docker.
-7. Deploy / wait for the build to finish.
-8. Open the service → **Settings** → **Networking** → **Generate Domain**
+Dockerfile + `railway.toml` are already in the repo.
 
 ---
 
-## 3. Verify
-
-```text
-https://YOUR-APP.up.railway.app/api/health
-→ {"status":"ok","service":"SiNails Studio"}
-
-https://YOUR-APP.up.railway.app/
-→ redirects to Create Admin Account (/setup)
-```
-
-On boot the container runs:
-
-```text
-prisma migrate deploy   # creates empty tables
-node dist/server/index.js
-```
-
-No seed data is created.
-
----
-
-## 4. Alternative: Render
-
-[`render.yaml`](render.yaml) is included.
-
-1. [dashboard.render.com](https://dashboard.render.com) → New → Blueprint
-2. Connect the GitHub repo
-3. Apply the blueprint (web + Postgres)
-4. Confirm `JWT_SECRET` and `DATABASE_URL`
-5. Open the Render URL → `/setup`
-
----
-
-## 5. Local production build check
+## Local production build check
 
 ```bash
-npm ci
+npm install
 npx prisma migrate deploy
 npm run build
 set NODE_ENV=production
@@ -95,20 +91,15 @@ set JWT_SECRET=local-prod-test-secret-change-me
 npm start
 ```
 
-Then open `http://localhost:5000` (single port serves UI + API).
+Open `http://localhost:5000`.
 
 ---
 
-## 6. Wipe production data later (optional)
-
-If you need a clean client reset on the live DB:
+## After deploy checks
 
 ```bash
-# Set DATABASE_URL to the production connection string temporarily
-npm run db:reset
+npm run deploy:check -- https://YOUR-SERVICE.onrender.com
 ```
-
-Or run SQL delete of all rows, then reopen `/setup`.
 
 ---
 
@@ -116,7 +107,8 @@ Or run SQL delete of all rows, then reopen `/setup`.
 
 | Issue | Fix |
 |-------|-----|
-| Build fails on Prisma | Ensure `DATABASE_URL` exists at runtime; migrate runs on start |
-| Login cookie fails | Confirm `NODE_ENV=production` and HTTPS domain |
-| Setup skipped | An ADMIN already exists — reset DB or delete users |
-| Port errors | Let the host inject `PORT`; do not set a fixed private port |
+| Build fails: `vite` / `tsc` not found | Use build command with `npm install --include=dev` (already in docs) |
+| `DATABASE_URL` missing | Paste Neon connection string into Render env |
+| Login cookie fails | Confirm `NODE_ENV=production` and HTTPS URL |
+| Setup skipped | An ADMIN already exists — reset that database |
+| App sleeps / slow first load | Normal on Render free tier after idle |
