@@ -1,5 +1,17 @@
 # SiNails Studio — Client handoff
 
+## Use on a phone
+
+The same live URL works on mobile browsers (Chrome / Safari).
+
+1. Open the studio URL on the phone
+2. Log in as Admin or User (same accounts)
+3. Optional — install as an app:
+   - **Android Chrome:** Menu → **Install app** / **Add to Home screen**
+   - **iPhone Safari:** Share → **Add to Home Screen**
+
+Admin and employee features are the same as desktop. Tables switch to cards or horizontal scroll on small screens.
+
 ## What you receive
 
 - Live app URL: *(paste Railway/Render URL after deploy)*
