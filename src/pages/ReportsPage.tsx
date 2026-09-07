@@ -195,6 +195,19 @@ export function ReportsPage() {
               <p>Total Appointments</p>
               <strong>{data.summary.totalAppointments}</strong>
             </div>
+            <div className="stat-card">
+              <p>Total User Expenses</p>
+              <strong>{formatNrs(data.summary.totalUserExpenses || 0)}</strong>
+            </div>
+            <div className="stat-card">
+              <p>Net Profit</p>
+              <strong>
+                {formatNrs(
+                  data.summary.netProfit ??
+                    data.summary.totalRevenue - (data.summary.totalUserExpenses || 0)
+                )}
+              </strong>
+            </div>
           </div>
 
           <div className="dashboard-grid">

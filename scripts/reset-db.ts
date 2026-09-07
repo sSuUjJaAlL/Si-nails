@@ -22,12 +22,14 @@ async function main() {
   console.log('Resetting database to a clean testing state...');
 
   // Order matters because of foreign keys
+  const expenses = await prisma.expense.deleteMany();
   const entries = await prisma.serviceEntry.deleteMany();
   const appointments = await prisma.appointment.deleteMany();
   const clients = await prisma.client.deleteMany();
   const services = await prisma.service.deleteMany();
   const users = await prisma.user.deleteMany();
 
+  console.log(`Removed ${expenses.count} expenses`);
   console.log(`Removed ${entries.count} service entries`);
   console.log(`Removed ${appointments.count} appointments`);
   console.log(`Removed ${clients.count} clients`);

@@ -14,6 +14,7 @@ import paymentRoutes from './routes/paymentRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import entryRoutes from './routes/entryRoutes.js';
+import expenseRoutes from './routes/expenseRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -54,6 +55,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/entries', entryRoutes);
+app.use('/api/expenses', expenseRoutes);
 
 const clientDist = path.resolve(__dirname, '../client');
 const publicFallback = path.resolve(__dirname, '../../public');

@@ -13,12 +13,14 @@ const adminNav = [
   { to: '/admin/users', label: 'Users' },
   { to: '/admin/appointments', label: 'Appointments' },
   { to: '/admin/payments', label: 'Payments' },
+  { to: '/admin/expenses', label: 'Expenses' },
   { to: '/admin/reports', label: 'Reports' },
   { to: '/admin/profile', label: 'Profile' },
 ];
 
 const userNav = [
   { to: '/user/entries', label: 'Entries', end: true },
+  { to: '/user/expenses', label: 'Expenses' },
   { to: '/user/profile', label: 'Profile' },
 ];
 

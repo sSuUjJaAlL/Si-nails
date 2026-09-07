@@ -7,6 +7,7 @@ import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { AppointmentsPage } from './pages/AppointmentsPage';
 import { ClientsPage } from './pages/ClientsPage';
 import { EntriesPage } from './pages/EntriesPage';
+import { ExpensesPage } from './pages/ExpensesPage';
 import { LoginPage } from './pages/LoginPage';
 import { PaymentsPage } from './pages/PaymentsPage';
 import { ProfilePage } from './pages/ProfilePage';
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="/admin/appointments" element={<AppointmentsPage />} />
             <Route path="/admin/clients" element={<ClientsPage />} />
             <Route path="/admin/payments" element={<PaymentsPage />} />
+            <Route path="/admin/expenses" element={<ExpensesPage />} />
             <Route path="/admin/reports" element={<ReportsPage />} />
             <Route path="/admin/users" element={<UsersPage />} />
             <Route path="/admin/profile" element={<ProfilePage />} />
@@ -53,6 +55,7 @@ export default function App() {
         <Route element={<UserRoute />}>
           <Route element={<AppLayout variant="user" />}>
             <Route path="/user/entries" element={<EntriesPage />} />
+            <Route path="/user/expenses" element={<ExpensesPage />} />
             <Route path="/user/profile" element={<ProfilePage />} />
             <Route path="/user/dashboard" element={<Navigate to="/user/entries" replace />} />
             <Route path="/user/appointments" element={<Navigate to="/user/entries" replace />} />

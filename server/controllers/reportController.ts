@@ -243,7 +243,7 @@ export async function getActivity(req: Request, res: Response, next: NextFunctio
       employee: { select: { id: true, name: true } },
     } as const;
 
-    const [entries, recent] = await Promise.all([
+    const [entries, recent, expenseAgg] = await Promise.all([
       prisma.serviceEntry.findMany({
         where: { date: day },
         include: includeEmployee,
@@ -253,6 +253,10 @@ export async function getActivity(req: Request, res: Response, next: NextFunctio
         take: 25,
         include: includeEmployee,
         orderBy: [{ createdAt: 'desc' }],
+      }),
+      prisma.expense.aggregate({
+        where: { user: { role: 'USER' } },
+        _sum: { amount: true },
       }),
     ]);
 
@@ -267,15 +271,20 @@ export async function getActivity(req: Request, res: Response, next: NextFunctio
       else if (row.paymentType === 'ONLINE') onlineRevenue += amount;
     }
 
+    const totalRevenue = cashRevenue + onlineRevenue;
+    const totalUserExpenses = decimalToNumber(expenseAgg._sum.amount || 0);
+
     res.json({
       data: {
         date,
         summary: {
           totalClients: clientNames.size,
           totalServices: entries.length,
-          totalRevenue: cashRevenue + onlineRevenue,
+          totalRevenue,
           cashRevenue,
           onlineRevenue,
+          totalUserExpenses,
+          netProfit: totalRevenue - totalUserExpenses,
         },
         entries: entries.map(serializeActivityEntry),
         recent: recent.map(serializeActivityEntry),
@@ -379,7 +388,7 @@ export async function getBusinessReport(req: Request, res: Response, next: NextF
       date: { gte: from, lte: to },
     };
 
-    const [entries, appointmentCount] = await Promise.all([
+    const [entries, appointmentCount, expenseAgg] = await Promise.all([
       prisma.serviceEntry.findMany({
         where: entryWhere,
         select: {
@@ -392,6 +401,13 @@ export async function getBusinessReport(req: Request, res: Response, next: NextF
         orderBy: { date: 'asc' },
       }),
       prisma.appointment.count({ where: apptWhere }),
+      prisma.expense.aggregate({
+        where: {
+          date: { gte: from, lte: to },
+          user: { role: 'USER' },
+        },
+        _sum: { amount: true },
+      }),
     ]);
 
     let cashRevenue = 0;
@@ -425,6 +441,8 @@ export async function getBusinessReport(req: Request, res: Response, next: NextF
     }
 
     const servicePerformance = Array.from(serviceMap.values()).sort((a, b) => b.revenue - a.revenue);
+    const totalRevenue = cashRevenue + onlineRevenue;
+    const totalUserExpenses = decimalToNumber(expenseAgg._sum.amount || 0);
 
     res.json({
       data: {
@@ -434,12 +452,14 @@ export async function getBusinessReport(req: Request, res: Response, next: NextF
           period: period || 'custom',
         },
         summary: {
-          totalRevenue: cashRevenue + onlineRevenue,
+          totalRevenue,
           totalClients: clients.size,
           totalServices: entries.length,
           cashRevenue,
           onlineRevenue,
           totalAppointments: appointmentCount,
+          totalUserExpenses,
+          netProfit: totalRevenue - totalUserExpenses,
         },
         chart: Array.from(chartMap.values()),
         servicePerformance,

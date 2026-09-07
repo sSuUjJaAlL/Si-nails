@@ -2,6 +2,13 @@ export type Role = 'ADMIN' | 'USER';
 export type UserStatus = 'ACTIVE' | 'INACTIVE';
 export type PaymentType = 'CASH' | 'ONLINE';
 export type AppointmentStatus = 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
+export type ExpenseCategory =
+  | 'FOOD'
+  | 'TRANSPORTATION'
+  | 'SUPPLIES'
+  | 'UTILITIES'
+  | 'RENT'
+  | 'OTHER';
 
 export interface User {
   id: string;
@@ -58,6 +65,21 @@ export interface PaymentRow {
   employeeName: string;
 }
 
+export interface Expense {
+  id: string;
+  userId: string;
+  userName: string;
+  description: string;
+  category: ExpenseCategory;
+  amount: number;
+  date: string;
+  createdById: string;
+  createdByName: string;
+  createdByRole: Role;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Paginated<T> {
   data: T[];
   meta: { total: number; page: number; limit: number; totalPages: number };
@@ -72,6 +94,8 @@ export interface BusinessReport {
     cashRevenue: number;
     onlineRevenue: number;
     totalAppointments: number;
+    totalUserExpenses?: number;
+    netProfit?: number;
   };
   chart: { date: string; revenue: number; cash: number; online: number }[];
   servicePerformance: { name: string; bookings: number; revenue: number }[];

@@ -27,6 +27,8 @@ type ActivityData = {
     totalRevenue: number;
     cashRevenue: number;
     onlineRevenue: number;
+    totalUserExpenses?: number;
+    netProfit?: number;
   };
   entries: ActivityEntry[];
   recent: ActivityEntry[];
@@ -196,6 +198,14 @@ export function AdminDashboardPage() {
             <div className="stat-card">
               <p>Online</p>
               <strong>{formatNrs(data.summary.onlineRevenue)}</strong>
+            </div>
+            <div className="stat-card">
+              <p>Total User Expenses</p>
+              <strong>{formatNrs(data.summary.totalUserExpenses || 0)}</strong>
+            </div>
+            <div className="stat-card">
+              <p>Net Profit</p>
+              <strong>{formatNrs(data.summary.netProfit ?? data.summary.totalRevenue)}</strong>
             </div>
           </div>
 

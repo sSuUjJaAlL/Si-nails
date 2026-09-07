@@ -29,6 +29,15 @@ enum AppointmentStatus {
   CANCELLED
 }
 
+enum ExpenseCategory {
+  FOOD
+  TRANSPORTATION
+  SUPPLIES
+  UTILITIES
+  RENT
+  OTHER
+}
+
 model User {
   id           String     @id @default(cuid())
   name         String
@@ -40,6 +49,8 @@ model User {
   updatedAt    DateTime   @updatedAt
   appointments Appointment[]
   entries      ServiceEntry[]
+  ownedExpenses   Expense[] @relation("ExpenseOwner")
+  createdExpenses Expense[] @relation("ExpenseCreator")
 
   @@map("users")
 }
@@ -111,4 +122,27 @@ model ServiceEntry {
   @@index([employeeId])
   @@index([paymentType])
   @@map("service_entries")
+}
+
+/// Business/user expenses. `userId` = account that owns the expense (always a USER).
+/// `createdById` = who entered it (USER self or ADMIN on behalf of user).
+model Expense {
+  id          String          @id @default(cuid())
+  userId      String
+  description String
+  category    ExpenseCategory
+  amount      Decimal         @db.Decimal(12, 2)
+  date        DateTime        @db.Date
+  createdById String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  user      User @relation("ExpenseOwner", fields: [userId], references: [id], onDelete: Cascade)
+  createdBy User @relation("ExpenseCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([createdById])
+  @@index([date])
+  @@index([category])
+  @@map("expenses")
 }
